@@ -4,6 +4,7 @@ dotenv.config()
 
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import connectDB from './config/db.js'
 import authRoutes from './routes/authRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
@@ -17,6 +18,12 @@ import { errorHandler, notFound } from './middleware/errorHandler.js'
 
 const app = express()
 
+const corsOptions = {
+  origin: ['https://bugyboo.com', 'http://localhost:8080'],
+  credentials: true
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
 
