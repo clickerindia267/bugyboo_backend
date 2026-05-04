@@ -19,7 +19,7 @@ import { errorHandler, notFound } from './middleware/errorHandler.js'
 const app = express()
 
 const corsOptions = {
-  origin: ['https://bugyboo.com', 'http://localhost:8080'],
+  origin: ['https://bugyboo.com', 'https://www.bugyboo.com' , 'http://localhost:8080'],
   credentials: true
 }
 
