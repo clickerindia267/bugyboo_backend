@@ -10,7 +10,7 @@ export const getAdminDashboard = async (req, res, next) => {
       { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
     ])
 
-    const pendingOrders = await Order.countDocuments({ orderStatus: 'pending' })
+    const pendingOrders = await Order.countDocuments({ orderStatus: 'ordered' })
     const pendingPayments = await Order.countDocuments({ paymentStatus: 'pending' })
 
     res.json({

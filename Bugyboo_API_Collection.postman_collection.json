@@ -125,9 +125,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/dashboard",
+              "raw": "{{base_url}}/api/admin/dashboard",
               "host": ["{{base_url}}"],
-              "path": ["admin", "dashboard"]
+              "path": ["api", "admin", "dashboard"]
             }
           }
         },
@@ -142,9 +142,172 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/revenue",
+              "raw": "{{base_url}}/api/admin/revenue",
               "host": ["{{base_url}}"],
-              "path": ["admin", "revenue"]
+              "path": ["api", "admin", "revenue"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Orders",
+      "item": [
+        {
+          "name": "Get Pending Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", "pending"]
+            }
+          }
+        },
+        {
+          "name": "Get Delivered Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/delivered",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", "delivered"]
+            }
+          }
+        },
+        {
+          "name": "Accept Order (Ship)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shipped\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", ":orderId", "status"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "665abc123def456ghi789"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Decline Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", ":orderId", "status"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "665abc123def456ghi789"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update to Out for Delivery",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"out_for_delivery\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", ":orderId", "status"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "665abc123def456ghi789"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark as Delivered",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"delivered\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/orders/:orderId/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "orders", ":orderId", "status"],
+              "variable": [
+                {
+                  "key": "orderId",
+                  "value": "665abc123def456ghi789"
+                }
+              ]
             }
           }
         }
@@ -172,9 +335,9 @@
               "raw": "{\n  \"name\": \"Clothing\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/admin/categories",
+              "raw": "{{base_url}}/api/admin/categories",
               "host": ["{{base_url}}"],
-              "path": ["admin", "categories"]
+              "path": ["api", "admin", "categories"]
             }
           }
         },
@@ -189,9 +352,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/categories",
+              "raw": "{{base_url}}/api/admin/categories",
               "host": ["{{base_url}}"],
-              "path": ["admin", "categories"]
+              "path": ["api", "admin", "categories"]
             }
           }
         },
@@ -206,9 +369,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/categories/:categoryId",
+              "raw": "{{base_url}}/api/admin/categories/:categoryId",
               "host": ["{{base_url}}"],
-              "path": ["admin", "categories", ":categoryId"]
+              "path": ["api", "admin", "categories", ":categoryId"]
             }
           }
         }
@@ -278,9 +441,9 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/admin/products",
+              "raw": "{{base_url}}/api/admin/products",
               "host": ["{{base_url}}"],
-              "path": ["admin", "products"]
+              "path": ["api", "admin", "products"]
             }
           }
         },
@@ -295,9 +458,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/products",
+              "raw": "{{base_url}}/api/admin/products",
               "host": ["{{base_url}}"],
-              "path": ["admin", "products"]
+              "path": ["api", "admin", "products"]
             }
           }
         },
@@ -320,9 +483,9 @@
               "raw": "{\n  \"name\": \"Updated Baby Shirt\",\n  \"basePrice\": 550,\n  \"sellPrice\": 749,\n  \"gst\": 5,\n  \"description\": \"Updated description\",\n  \"color\": \"Red\",\n  \"size\": \"12-18 months\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/admin/products/:productId",
+              "raw": "{{base_url}}/api/admin/products/:productId",
               "host": ["{{base_url}}"],
-              "path": ["admin", "products", ":productId"]
+              "path": ["api", "admin", "products", ":productId"]
             }
           }
         },
@@ -337,9 +500,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/products/:productId",
+              "raw": "{{base_url}}/api/admin/products/:productId",
               "host": ["{{base_url}}"],
-              "path": ["admin", "products", ":productId"]
+              "path": ["api", "admin", "products", ":productId"]
             }
           }
         },
@@ -354,9 +517,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/products/:productId/pause",
+              "raw": "{{base_url}}/api/admin/products/:productId/pause",
               "host": ["{{base_url}}"],
-              "path": ["admin", "products", ":productId", "pause"]
+              "path": ["api", "admin", "products", ":productId", "pause"]
             }
           }
         }
@@ -376,9 +539,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/orders",
+              "raw": "{{base_url}}/api/admin/orders",
               "host": ["{{base_url}}"],
-              "path": ["admin", "orders"]
+              "path": ["api", "admin", "orders"]
             }
           }
         },
@@ -393,9 +556,9 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/admin/orders/pending",
+              "raw": "{{base_url}}/api/admin/orders/pending",
               "host": ["{{base_url}}"],
-              "path": ["admin", "orders", "pending"]
+              "path": ["api", "admin", "orders", "pending"]
             }
           }
         },
@@ -418,9 +581,9 @@
               "raw": "{\n  \"status\": \"approved\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/admin/orders/:orderId/status",
+              "raw": "{{base_url}}/api/admin/orders/:orderId/status",
               "host": ["{{base_url}}"],
-              "path": ["admin", "orders", ":orderId", "status"]
+              "path": ["api", "admin", "orders", ":orderId", "status"]
             }
           }
         }
@@ -445,3 +608,4 @@
     }
   ]
 }
+

@@ -142,7 +142,19 @@ export const getOrders = async (req, res, next) => {
 
 export const getPendingOrders = async (req, res, next) => {
   try {
-    const orders = await Order.find({ orderStatus: 'pending' })
+    const orders = await Order.find({ orderStatus: 'ordered' })
+      .populate('user', 'name email mobile role')
+      .populate('products.product', 'name sellPrice')
+
+    res.json({ success: true, data: orders })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getDeliveredOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find({ orderStatus: 'delivered' })
       .populate('user', 'name email mobile role')
       .populate('products.product', 'name sellPrice')
 
@@ -157,7 +169,7 @@ export const updateOrderStatus = async (req, res, next) => {
     const { id } = req.params
     const { status } = req.body
 
-    if (!['approved', 'declined', 'shipped', 'delivered'].includes(status)) {
+    if (!['approved', 'shipped', 'cancelled', 'out_for_delivery', 'delivered'].includes(status)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid status value'
