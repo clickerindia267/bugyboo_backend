@@ -18,9 +18,12 @@ export const placeOrder = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'addressId is required' })
     }
 
-    if (paymentMethod !== 'COD') {
-      return res.status(400).json({ success: false, message: 'Only COD is supported for paymentMethod' })
-    }
+    if (!['COD', 'UPI'].includes(paymentMethod)) {
+  return res.status(400).json({
+    success: false,
+    message: 'Invalid payment method'
+  })
+}
 
     const address = await Address.findOne({ _id: addressId, userId })
     if (!address) {
@@ -70,9 +73,14 @@ export const placeOrder = async (req, res, next) => {
         email: contact.email?.trim() || ''
       },
       address: address._id,
-      paymentMethod: 'COD',
-      paymentStatus: 'pending',
-      orderStatus: 'ordered'
+      paymentMethod,
+paymentStatus:
+  paymentMethod === 'UPI' ? 'success' : 'pending',
+
+transactionId:
+  req.body.transactionId || null,
+
+orderStatus: 'ordered'
     })
 
     cart.products = []
