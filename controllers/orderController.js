@@ -133,6 +133,7 @@ export const getOrders = async (req, res, next) => {
     const orders = await Order.find()
       .populate('user', 'name email mobile role')
       .populate('products.product', 'name sellPrice')
+      .populate('address')
 
     res.json({ success: true, data: orders })
   } catch (error) {
@@ -145,6 +146,7 @@ export const getPendingOrders = async (req, res, next) => {
     const orders = await Order.find({ orderStatus: 'ordered' })
       .populate('user', 'name email mobile role')
       .populate('products.product', 'name sellPrice')
+      .populate('address')
 
     res.json({ success: true, data: orders })
   } catch (error) {
@@ -157,6 +159,7 @@ export const getDeliveredOrders = async (req, res, next) => {
     const orders = await Order.find({ orderStatus: 'delivered' })
       .populate('user', 'name email mobile role')
       .populate('products.product', 'name sellPrice')
+      .populate('address')
 
     res.json({ success: true, data: orders })
   } catch (error) {
