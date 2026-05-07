@@ -13,6 +13,7 @@ import userOrderRoutes from './routes/userOrderRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { blogRouter } from './routes/blogRoutes.js'
 import { errorHandler, notFound } from './middleware/errorHandler.js'
+import paymentApp from './src/app.js'
 
 const app = express()
 
@@ -33,6 +34,7 @@ app.use('/api/address', addressRoutes)
 app.use('/api/orders', userOrderRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/blogs', blogRouter)
+app.use(paymentApp)
 
 app.use(notFound)
 app.use(errorHandler)
