@@ -18,7 +18,9 @@ router.post(
   body('contact.name').notEmpty().withMessage('Contact name is required'),
   body('contact.mobile').notEmpty().withMessage('Contact mobile is required'),
   body('addressId').notEmpty().withMessage('addressId is required'),
-  body('paymentMethod').equals('COD').withMessage('Only COD is supported'),
+  body('paymentMethod')
+  .isIn(['COD', 'UPI'])
+  .withMessage('Invalid payment method'),
   validateRequest,
   placeOrder
 )
