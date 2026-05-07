@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import User from '../models/User.js'
+import { sendSignupConfirmationEmail } from '../emailTemplates/emailService.js'
 
 const refreshTokens = new Set()
 
@@ -59,6 +60,14 @@ export const signup = async (req, res, next) => {
       password: hashedPassword,
       role
     })
+
+    // Send signup confirmation email
+    try {
+      await sendSignupConfirmationEmail(user.email, user.name)
+    } catch (emailError) {
+      console.error('Failed to send signup confirmation email:', emailError.message)
+      // Don't fail the signup if email fails, just log it
+    }
 
     res.status(201).json({
       success: true,

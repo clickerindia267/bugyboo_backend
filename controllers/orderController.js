@@ -2,6 +2,8 @@ import Cart from '../models/Cart.js'
 import Order from '../models/Order.js'
 import Product from '../models/Product.js'
 import Address from '../models/Address.js'
+import User from '../models/User.js'
+import { sendOrderConfirmationEmail } from '../emailTemplates/emailService.js'
 
 export const placeOrder = async (req, res, next) => {
   try {
@@ -31,6 +33,7 @@ export const placeOrder = async (req, res, next) => {
     }
 
     const orderProducts = []
+    const emailProducts = []
     let totalAmount = 0
 
     for (const item of cart.products) {
@@ -45,6 +48,15 @@ export const placeOrder = async (req, res, next) => {
         product: product._id,
         quantity: item.quantity,
         price: productPrice
+      })
+
+      // Collect product details for email
+      emailProducts.push({
+        productName: product.name,
+        productDescription: product.description || 'N/A',
+        price: productPrice,
+        quantity: item.quantity,
+        productImage: product.images && product.images[0] ? product.images[0] : null
       })
     }
 
@@ -65,6 +77,34 @@ export const placeOrder = async (req, res, next) => {
 
     cart.products = []
     await cart.save()
+
+    // Send order confirmation email
+    try {
+      const user = await User.findById(userId)
+      if (user) {
+        const emailData = {
+          email: contact.email || user.email,
+          orderNumber: order._id.toString().slice(-8).toUpperCase(),
+          userName: contact.name,
+          products: emailProducts,
+          totalAmount,
+          deliveryAddress: {
+            addressLine: address.addressLine,
+            city: address.city,
+            state: address.state,
+            pinCode: address.pinCode
+          },
+          contact: {
+            name: contact.name,
+            mobile: contact.mobile
+          }
+        }
+        await sendOrderConfirmationEmail(emailData)
+      }
+    } catch (emailError) {
+      console.error('Failed to send order confirmation email:', emailError.message)
+      // Don't fail the order if email fails, just log it
+    }
 
     res.status(201).json({ success: true, data: order })
   } catch (error) {
