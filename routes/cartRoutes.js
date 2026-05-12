@@ -1,5 +1,5 @@
 import express from 'express'
-import { body } from 'express-validator'
+import { body, param } from 'express-validator'
 import { validateRequest } from '../middleware/validateRequest.js'
 import { authMiddleware } from '../middleware/authMiddleware.js'
 import {
@@ -14,22 +14,39 @@ const router = express.Router()
 
 router.use(authMiddleware)
 
+const validAgeGroups = ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
+
 router.post(
   '/add',
   body('productId').notEmpty().withMessage('productId is required'),
+  body('variantId').notEmpty().withMessage('variantId is required'),
+  body('selectedAgeGroup')
+    .notEmpty().withMessage('selectedAgeGroup is required')
+    .isIn(validAgeGroups).withMessage('Invalid age group'),
   body('quantity').optional().isInt({ min: 1 }).withMessage('quantity must be a positive integer'),
   validateRequest,
   addToCart
 )
+
 router.get('/', getCart)
+
 router.patch(
   '/update',
   body('productId').notEmpty().withMessage('productId is required'),
+  body('variantId').notEmpty().withMessage('variantId is required'),
   body('quantity').isInt({ min: 1 }).withMessage('quantity must be a positive integer'),
   validateRequest,
   updateCart
 )
-router.delete('/remove/:productId', removeFromCart)
+
+router.delete(
+  '/remove/:productId/:variantId',
+  param('productId').notEmpty().withMessage('productId is required'),
+  param('variantId').notEmpty().withMessage('variantId is required'),
+  validateRequest,
+  removeFromCart
+)
+
 router.delete('/clear', clearCart)
 
 export default router

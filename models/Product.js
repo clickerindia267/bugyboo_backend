@@ -1,5 +1,28 @@
 import mongoose from 'mongoose'
 
+const variantSchema = new mongoose.Schema(
+  {
+    ageGroup: {
+      type: String,
+      required: [true, 'Age group is required'],
+      trim: true,
+      enum: ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+'],
+      index: true
+    },
+    basePrice: {
+      type: Number,
+      required: [true, 'Base price is required for variant'],
+      min: [0, 'Base price must be positive']
+    },
+    sellPrice: {
+      type: Number,
+      required: [true, 'Sell price is required for variant'],
+      min: [0, 'Sell price must be positive']
+    }
+  },
+  { _id: true }
+)
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -16,23 +39,19 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Color is required'],
     trim: true
   },
-  size: {
-    type: String,
-    trim: true
-  },
   description: {
     type: String,
     trim: true
   },
-  basePrice: {
-    type: Number,
-    required: [true, 'Base price is required'],
-    min: [0, 'Base price must be positive']
-  },
-  sellPrice: {
-    type: Number,
-    required: [true, 'Sell price is required'],
-    min: [0, 'Sell price must be positive']
+  variants: {
+    type: [variantSchema],
+    required: [true, 'Variants are required'],
+    validate: {
+      validator: function (variants) {
+        return variants && variants.length > 0
+      },
+      message: 'At least one variant must be defined'
+    }
   },
   gst: {
     type: Number,

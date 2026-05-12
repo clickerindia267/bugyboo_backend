@@ -19,18 +19,18 @@ export const placeOrder = async (req, res, next) => {
     }
 
     if (!['COD', 'UPI'].includes(paymentMethod)) {
-  return res.status(400).json({
-    success: false,
-    message: 'Invalid payment method'
-  })
-}
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      })
+    }
 
     const address = await Address.findOne({ _id: addressId, userId })
     if (!address) {
       return res.status(404).json({ success: false, message: 'Address not found' })
     }
 
-    const cart = await Cart.findOne({ userId })
+    const cart = await Cart.findOne({ userId }).populate('products.productId')
     if (!cart || cart.products.length === 0) {
       return res.status(400).json({ success: false, message: 'Cart is empty' })
     }
@@ -40,25 +40,40 @@ export const placeOrder = async (req, res, next) => {
     let totalAmount = 0
 
     for (const item of cart.products) {
-      const product = await Product.findById(item.productId)
+      const product = item.productId
       if (!product) {
         return res.status(404).json({ success: false, message: `Product not found: ${item.productId}` })
       }
 
-      const productPrice = product.sellPrice ?? 0
-      totalAmount += productPrice * item.quantity
+      // Validate variant exists
+      const variant = product.variants.id(item.variantId)
+      if (!variant) {
+        return res.status(404).json({
+          success: false,
+          message: `Variant not found for product ${product.name}`
+        })
+      }
+
+      const subtotal = item.selectedPrice * item.quantity
+      totalAmount += subtotal
+
       orderProducts.push({
         product: product._id,
+        variantId: item.variantId,
+        selectedAgeGroup: item.selectedAgeGroup,
         quantity: item.quantity,
-        price: productPrice
+        selectedPrice: item.selectedPrice,
+        subtotal
       })
 
       // Collect product details for email
       emailProducts.push({
         productName: product.name,
         productDescription: product.description || 'N/A',
-        price: productPrice,
+        ageGroup: item.selectedAgeGroup,
+        price: item.selectedPrice,
         quantity: item.quantity,
+        subtotal,
         productImage: product.images && product.images[0] ? product.images[0] : null
       })
     }
@@ -74,13 +89,11 @@ export const placeOrder = async (req, res, next) => {
       },
       address: address._id,
       paymentMethod,
-paymentStatus:
-  paymentMethod === 'UPI' ? 'success' : 'pending',
-
-transactionId:
-  req.body.transactionId || null,
-
-orderStatus: 'ordered'
+      paymentStatus:
+        paymentMethod === 'UPI' ? 'success' : 'pending',
+      transactionId:
+        req.body.transactionId || null,
+      orderStatus: 'ordered'
     })
 
     cart.products = []

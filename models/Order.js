@@ -6,15 +6,29 @@ const orderItemSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
+  variantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, 'variantId is required']
+  },
+  selectedAgeGroup: {
+    type: String,
+    required: [true, 'Age group selection is required'],
+    enum: ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
+  },
   quantity: {
     type: Number,
     required: true,
     min: [1, 'Quantity must be at least 1']
   },
-  price: {
+  selectedPrice: {
     type: Number,
     required: true,
     min: [0, 'Price must be non-negative']
+  },
+  subtotal: {
+    type: Number,
+    required: true,
+    min: [0, 'Subtotal must be non-negative']
   }
 })
 

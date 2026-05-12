@@ -16,6 +16,29 @@ const formParser = multer().none()
 
 router.get('/', getProducts)
 
+// Custom validator for variants
+const validateVariants = (value) => {
+  if (!Array.isArray(value) || value.length === 0) {
+    throw new Error('Variants must be a non-empty array')
+  }
+  
+  const validAgeGroups = ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
+  
+  for (const variant of value) {
+    if (!variant.ageGroup || !validAgeGroups.includes(variant.ageGroup)) {
+      throw new Error(`Invalid age group: ${variant.ageGroup}`)
+    }
+    if (typeof variant.basePrice !== 'number' || variant.basePrice < 0) {
+      throw new Error(`Invalid basePrice for age group ${variant.ageGroup}`)
+    }
+    if (typeof variant.sellPrice !== 'number' || variant.sellPrice < 0) {
+      throw new Error(`Invalid sellPrice for age group ${variant.ageGroup}`)
+    }
+  }
+  
+  return true
+}
+
 router.post(
   '/',
   (req, res, next) => {
@@ -29,9 +52,8 @@ router.post(
   body('name').notEmpty().withMessage('Name is required'),
   body('category').notEmpty().withMessage('Category is required'),
   body('color').notEmpty().withMessage('Color is required'),
-  body('basePrice').isFloat({ gt: 0 }).withMessage('Base price must be greater than zero'),
-  body('sellPrice').isFloat({ gt: 0 }).withMessage('Sell price must be greater than zero'),
-  body('gst').isFloat({ min: 0 }).withMessage('GST must be a number'),
+  body('variants').custom(validateVariants),
+  body('gst').optional().isFloat({ min: 0 }).withMessage('GST must be a number'),
   validateRequest,
   createProduct
 )
@@ -39,8 +61,7 @@ router.post(
 router.patch(
   '/:id',
   formParser,
-  body('basePrice').optional().isFloat({ gt: 0 }).withMessage('Base price must be greater than zero'),
-  body('sellPrice').optional().isFloat({ gt: 0 }).withMessage('Sell price must be greater than zero'),
+  body('variants').optional().custom(validateVariants),
   body('gst').optional().isFloat({ min: 0 }).withMessage('GST must be a number'),
   validateRequest,
   updateProduct

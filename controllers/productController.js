@@ -7,10 +7,8 @@ export const createProduct = async (req, res, next) => {
       name,
       category,
       color,
-      size,
       description,
-      basePrice,
-      sellPrice,
+      variants,
       gst
     } = req.body
 
@@ -19,6 +17,36 @@ export const createProduct = async (req, res, next) => {
         success: false,
         message: 'At least one media file is required'
       })
+    }
+
+    // Validate variants
+    if (!variants || !Array.isArray(variants) || variants.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Variants array is required and must contain at least one variant'
+      })
+    }
+
+    // Validate each variant
+    for (const variant of variants) {
+      if (!variant.ageGroup || !variant.basePrice || !variant.sellPrice) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each variant must have ageGroup, basePrice, and sellPrice'
+        })
+      }
+      if (typeof variant.basePrice !== 'number' || variant.basePrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid basePrice for age group ${variant.ageGroup}`
+        })
+      }
+      if (typeof variant.sellPrice !== 'number' || variant.sellPrice < 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid sellPrice for age group ${variant.ageGroup}`
+        })
+      }
     }
 
     const categoryExists = await Category.findById(category)
@@ -35,10 +63,8 @@ export const createProduct = async (req, res, next) => {
       name,
       category,
       color,
-      size,
       description,
-      basePrice,
-      sellPrice,
+      variants,
       gst,
       images
     })
@@ -117,6 +143,38 @@ export const updateProduct = async (req, res, next) => {
           success: false,
           message: 'Category not found'
         })
+      }
+    }
+
+    // Validate variants if provided
+    if (updateData.variants) {
+      if (!Array.isArray(updateData.variants) || updateData.variants.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Variants array must contain at least one variant'
+        })
+      }
+
+      // Validate each variant
+      for (const variant of updateData.variants) {
+        if (!variant.ageGroup || !variant.basePrice || !variant.sellPrice) {
+          return res.status(400).json({
+            success: false,
+            message: 'Each variant must have ageGroup, basePrice, and sellPrice'
+          })
+        }
+        if (typeof variant.basePrice !== 'number' || variant.basePrice < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid basePrice for age group ${variant.ageGroup}`
+          })
+        }
+        if (typeof variant.sellPrice !== 'number' || variant.sellPrice < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid sellPrice for age group ${variant.ageGroup}`
+          })
+        }
       }
     }
 

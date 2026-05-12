@@ -6,6 +6,20 @@ const cartProductSchema = new mongoose.Schema({
     ref: 'Product',
     required: true
   },
+  variantId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, 'variantId is required']
+  },
+  selectedAgeGroup: {
+    type: String,
+    required: [true, 'Age group selection is required'],
+    enum: ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
+  },
+  selectedPrice: {
+    type: Number,
+    required: [true, 'Price for selected variant is required'],
+    min: [0, 'Price must be positive']
+  },
   quantity: {
     type: Number,
     required: true,
