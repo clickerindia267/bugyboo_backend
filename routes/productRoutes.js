@@ -10,6 +10,7 @@ import {
 } from '../controllers/productController.js'
 import { validateRequest } from '../middleware/validateRequest.js'
 import { adminMediaUpload } from '../middleware/upload.js'
+import { parseVariants } from '../middleware/parseVariants.js'
 
 const router = express.Router()
 const formParser = multer().none()
@@ -49,6 +50,7 @@ router.post(
       next()
     })
   },
+  parseVariants,
   body('name').notEmpty().withMessage('Name is required'),
   body('category').notEmpty().withMessage('Category is required'),
   body('color').notEmpty().withMessage('Color is required'),
@@ -61,6 +63,7 @@ router.post(
 router.patch(
   '/:id',
   formParser,
+  parseVariants,
   body('variants').optional().custom(validateVariants),
   body('gst').optional().isFloat({ min: 0 }).withMessage('GST must be a number'),
   validateRequest,
