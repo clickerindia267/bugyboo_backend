@@ -1,5 +1,4 @@
 import express from 'express'
-import multer from 'multer'
 import { body } from 'express-validator'
 import {
   createProduct,
@@ -13,7 +12,6 @@ import { adminMediaUpload } from '../middleware/upload.js'
 import { parseVariants } from '../middleware/parseVariants.js'
 
 const router = express.Router()
-const formParser = multer().none()
 
 router.get('/', getProducts)
 
@@ -62,7 +60,14 @@ router.post(
 
 router.patch(
   '/:id',
-  formParser,
+  (req, res, next) => {
+    adminMediaUpload(4, 'admin')(req, res, err => {
+      if (err) {
+        return res.status(400).json({ success: false, message: err.message })
+      }
+      next()
+    })
+  },
   parseVariants,
   body('variants').optional().custom(validateVariants),
   body('gst').optional().isFloat({ min: 0 }).withMessage('GST must be a number'),

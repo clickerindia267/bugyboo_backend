@@ -1,14 +1,40 @@
 import Product from '../models/Product.js'
 import Category from '../models/Category.js'
 
+const parseVariantsPayload = (variants) => {
+  if (!variants) {
+    return []
+  }
+
+  if (typeof variants === 'string') {
+    return JSON.parse(variants)
+  }
+
+  if (Array.isArray(variants) && variants.every(item => typeof item === 'string')) {
+    return variants.map(item => JSON.parse(item))
+  }
+
+  return variants
+}
+
 export const createProduct = async (req, res, next) => {
   try {
+    let variants = []
+
+    try {
+      variants = req.body.variants ? parseVariantsPayload(req.body.variants) : []
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid variants format'
+      })
+    }
+
     const {
       name,
       category,
       color,
       description,
-      variants,
       gst
     } = req.body
 
@@ -135,6 +161,21 @@ export const updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params
     const updateData = { ...req.body }
+
+    if (typeof updateData.variants !== 'undefined') {
+      try {
+        updateData.variants = parseVariantsPayload(updateData.variants)
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid variants format'
+        })
+      }
+    }
+
+    if (req.files && req.files.length > 0) {
+      updateData.images = req.files.map(file => file.location || file.key)
+    }
 
     if (updateData.category) {
       const categoryExists = await Category.findById(updateData.category)
