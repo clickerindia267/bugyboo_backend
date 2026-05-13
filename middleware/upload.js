@@ -31,7 +31,7 @@ export const adminMediaUpload = (maxFiles = 4, folder = 'admin') => {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 25 * 1024 * 1024
+      fileSize: 50 * 1024 * 1024
     },
     fileFilter
   }).array('media', maxFiles)
