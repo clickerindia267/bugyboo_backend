@@ -20,12 +20,16 @@ const validateVariants = (value) => {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error('Variants must be a non-empty array')
   }
-  
-  const validAgeGroups = ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
-  
+
   for (const variant of value) {
-    if (!variant.ageGroup || !validAgeGroups.includes(variant.ageGroup)) {
-      throw new Error(`Invalid age group: ${variant.ageGroup}`)
+    if (!variant.ageGroup || typeof variant.ageGroup !== 'string' || !variant.ageGroup.trim()) {
+      throw new Error('Age group is required')
+    }
+    if (variant.basePrice == null) {
+      throw new Error(`Base price is required for age group ${variant.ageGroup}`)
+    }
+    if (variant.sellPrice == null) {
+      throw new Error(`Sell price is required for age group ${variant.ageGroup}`)
     }
     if (typeof variant.basePrice !== 'number' || variant.basePrice < 0) {
       throw new Error(`Invalid basePrice for age group ${variant.ageGroup}`)

@@ -55,7 +55,7 @@ export const createProduct = async (req, res, next) => {
 
     // Validate each variant
     for (const variant of variants) {
-      if (!variant.ageGroup || !variant.basePrice || !variant.sellPrice) {
+      if (!variant.ageGroup || variant.basePrice == null || variant.sellPrice == null) {
         return res.status(400).json({
           success: false,
           message: 'Each variant must have ageGroup, basePrice, and sellPrice'
@@ -198,7 +198,7 @@ export const updateProduct = async (req, res, next) => {
 
       // Validate each variant
       for (const variant of updateData.variants) {
-        if (!variant.ageGroup || !variant.basePrice || !variant.sellPrice) {
+        if (!variant.ageGroup || variant.basePrice == null || variant.sellPrice == null) {
           return res.status(400).json({
             success: false,
             message: 'Each variant must have ageGroup, basePrice, and sellPrice'

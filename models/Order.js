@@ -13,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
   selectedAgeGroup: {
     type: String,
     required: [true, 'Age group selection is required'],
-    enum: ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
+    trim: true
   },
   quantity: {
     type: Number,

@@ -14,15 +14,14 @@ const router = express.Router()
 
 router.use(authMiddleware)
 
-const validAgeGroups = ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+']
-
 router.post(
   '/add',
   body('productId').notEmpty().withMessage('productId is required'),
   body('variantId').notEmpty().withMessage('variantId is required'),
   body('selectedAgeGroup')
-    .notEmpty().withMessage('selectedAgeGroup is required')
-    .isIn(validAgeGroups).withMessage('Invalid age group'),
+    .isString().withMessage('selectedAgeGroup must be a string')
+    .trim()
+    .notEmpty().withMessage('selectedAgeGroup is required'),
   body('quantity').optional().isInt({ min: 1 }).withMessage('quantity must be a positive integer'),
   validateRequest,
   addToCart

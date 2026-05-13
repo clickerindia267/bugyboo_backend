@@ -6,7 +6,6 @@ const variantSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Age group is required'],
       trim: true,
-      enum: ['0-1', '1-3', '3-5', '5-7', '7-10', '10-13', '13+'],
       index: true
     },
     basePrice: {
