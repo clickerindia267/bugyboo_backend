@@ -1,7 +1,10 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { OAuth2Client } from 'google-auth-library'
 import User from '../models/User.js'
 import { sendSignupConfirmationEmail } from '../emailTemplates/emailService.js'
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 const refreshTokens = new Set()
 
@@ -198,6 +201,97 @@ export const getProfile = async (req, res, next) => {
       user: {
         id: req.user.id,
         role: req.user.role
+      }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const googleLogin = async (req, res, next) => {
+  try {
+    const { token } = req.body
+
+    if (!token) {
+      res.status(400)
+      return next(new Error('Google token is required'))
+    }
+
+    let payload
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID
+      })
+      payload = ticket.getPayload()
+    } catch (verifyError) {
+      res.status(401)
+      return next(new Error('Invalid or expired Google token'))
+    }
+
+    const { email, name, picture, sub: googleId } = payload
+
+    if (!email) {
+      res.status(400)
+      return next(new Error('Email is not associated with this Google account'))
+    }
+
+    let user = await User.findOne({ email: email.toLowerCase() })
+
+    if (user) {
+      let updated = false
+      if (!user.googleId) {
+        user.googleId = googleId
+        updated = true
+      }
+      if (!user.isGoogleUser) {
+        user.isGoogleUser = true
+        updated = true
+      }
+      if (!user.avatar && picture) {
+        user.avatar = picture
+        updated = true
+      }
+      if (updated) {
+        await user.save()
+      }
+    } else {
+      const userCount = await User.countDocuments()
+      const role = userCount === 0 ? 'admin' : 'user'
+
+      user = await User.create({
+        name,
+        email: email.toLowerCase(),
+        googleId,
+        avatar: picture || '',
+        isGoogleUser: true,
+        role
+      })
+
+      try {
+        await sendSignupConfirmationEmail(user.email, user.name)
+      } catch (emailError) {
+        console.error('Failed to send signup confirmation email for Google user:', emailError.message)
+      }
+    }
+
+    const accessToken = createAccessToken(user)
+    const refreshToken = createRefreshToken(user)
+    refreshTokens.add(refreshToken)
+
+    res.json({
+      success: true,
+      token: accessToken,
+      accessToken,
+      refreshToken,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        mobile: user.mobile,
+        role: user.role,
+        avatar: user.avatar,
+        isGoogleUser: user.isGoogleUser
       }
     })
   } catch (error) {

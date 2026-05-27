@@ -14,17 +14,38 @@ const userSchema = new mongoose.Schema({
   },
   mobile: {
     type: String,
-    required: [true, 'Mobile number is required'],
+    required: [
+      function() {
+        return !this.isGoogleUser;
+      },
+      'Mobile number is required'
+    ],
     trim: true
   },
   password: {
     type: String,
-    required: [true, 'Password is required']
+    required: [
+      function() {
+        return !this.isGoogleUser;
+      },
+      'Password is required'
+    ]
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  avatar: {
+    type: String
+  },
+  isGoogleUser: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

@@ -4,7 +4,8 @@ import {
   login,
   refreshToken,
   logout,
-  getProfile
+  getProfile,
+  googleLogin
 } from '../controllers/authController.js'
 import { authMiddleware } from '../middleware/authMiddleware.js'
 import { authRateLimiter } from '../middleware/rateLimiter.js'
@@ -13,6 +14,7 @@ const router = express.Router()
 
 router.post('/signup', authRateLimiter, signup)
 router.post('/login', authRateLimiter, login)
+router.post('/google', authRateLimiter, googleLogin)
 router.post('/refresh-token', authRateLimiter, refreshToken)
 router.post('/logout', authRateLimiter, logout)
 router.get('/me', authMiddleware, getProfile)
