@@ -4,6 +4,7 @@ import Product from '../models/Product.js'
 import Address from '../models/Address.js'
 import User from '../models/User.js'
 import { sendOrderConfirmationEmail } from '../emailTemplates/emailService.js'
+import { createShipment } from '../services/couriers/dtdcService.js'
 
 export const placeOrder = async (req, res, next) => {
   try {
@@ -255,6 +256,38 @@ export const updateOrderStatus = async (req, res, next) => {
         success: false,
         message: 'Order not found'
       })
+    }
+
+    // Automatic DTDC Courier Integration Trigger
+    if (['approved', 'shipped'].includes(status) && !order.shipmentCreated) {
+      try {
+        // Fetch and populate address
+        const populatedOrder = await Order.findById(order._id)
+          .populate('address')
+          .populate('products.product')
+
+        if (populatedOrder && populatedOrder.address) {
+          console.log(`[Order Status Update] Triggering DTDC automatic shipment creation for order: ${order._id}`)
+          const shipmentResult = await createShipment(populatedOrder, populatedOrder.address)
+          
+          if (shipmentResult && shipmentResult.success) {
+            order.courierPartner = 'DTDC'
+            order.awbNumber = shipmentResult.awbNumber
+            order.trackingNumber = shipmentResult.trackingNumber
+            order.shipmentStatus = shipmentResult.shipmentStatus
+            order.shippingLabelUrl = shipmentResult.shippingLabelUrl
+            order.shipmentCreated = true
+            order.shipmentResponse = shipmentResult.response
+            order.expectedDeliveryDate = shipmentResult.expectedDeliveryDate
+            
+            await order.save()
+            console.log(`[Order Status Update] DTDC shipment successfully created for order: ${order._id}. AWB: ${shipmentResult.awbNumber}`)
+          }
+        }
+      } catch (shippingError) {
+        console.error(`[Order Status Update ERROR] DTDC automatic shipment failed for order ${order._id}:`, shippingError.message)
+        // Flow continues safely, orderStatus remains updated
+      }
     }
 
     res.json({ success: true, data: order })

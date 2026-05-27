@@ -12,6 +12,8 @@ import addressRoutes from './routes/addressRoutes.js'
 import userOrderRoutes from './routes/userOrderRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import { blogRouter } from './routes/blogRoutes.js'
+import shippingRoutes from './routes/shippingRoutes.js'
+import webhookRoutes from './routes/webhookRoutes.js'
 import { errorHandler, notFound } from './middleware/errorHandler.js'
 import paymentApp from './src/app.js'
 
@@ -35,6 +37,8 @@ app.use('/api/address', addressRoutes)
 app.use('/api/orders', userOrderRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/blogs', blogRouter)
+app.use('/api/shipping', shippingRoutes)
+app.use('/api/webhooks', webhookRoutes)
 app.use(paymentApp)
 
 app.use(notFound)

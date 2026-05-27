@@ -93,6 +93,38 @@ const orderSchema = new mongoose.Schema(
       type: String,
       enum: ['ordered', 'approved', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'],
       default: 'ordered'
+    },
+    courierPartner: {
+      type: String,
+      default: null
+    },
+    awbNumber: {
+      type: String,
+      default: null
+    },
+    trackingNumber: {
+      type: String,
+      default: null
+    },
+    shipmentStatus: {
+      type: String,
+      default: null
+    },
+    shippingLabelUrl: {
+      type: String,
+      default: null
+    },
+    shipmentCreated: {
+      type: Boolean,
+      default: false
+    },
+    shipmentResponse: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
+    expectedDeliveryDate: {
+      type: Date,
+      default: null
     }
   },
   { timestamps: true }
