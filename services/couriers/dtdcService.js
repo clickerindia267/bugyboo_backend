@@ -93,7 +93,28 @@ export const createShipment = async (order, address) => {
     const fullUrl = `${baseUrl}/api/customer/integration/consignment/softdata`
     
     log(`Creating shipment for Order ID: ${order._id}`)
-    console.log("[DTDC] URL:", fullUrl)
+
+    if (order.shipping?.awbNumber || order.shipping?.shipmentStatus === 'booked') {
+      return {
+        success: true,
+        awbNumber: order.shipping?.awbNumber || `DTD_EXIST_${order._id}`,
+        trackingNumber: order.shipping?.awbNumber || `DTD_EXIST_${order._id}`,
+        shipmentStatus: order.shipping?.shipmentStatus || 'booked',
+        alreadyExists: true
+      }
+    }
+
+    if (order.awbNumber || order.shipmentStatus === 'booked') {
+      return {
+        success: true,
+        awbNumber: order.awbNumber || `DTD_EXIST_${order._id}`,
+        trackingNumber: order.awbNumber || `DTD_EXIST_${order._id}`,
+        shipmentStatus: order.shipmentStatus || 'booked',
+        alreadyExists: true
+      }
+    }
+
+    log('Using DTDC shipment endpoint')
 
     if (isMockMode()) {
       const mockAwb = `DTD${Math.floor(100000000 + Math.random() * 900000000)}`
@@ -114,13 +135,13 @@ export const createShipment = async (order, address) => {
     }
 
     // Official production softdata payload structure
-   const payload = { consignments: [ { customer_code: process.env.DTDC_CUSTOMER_CODE, service_type_id: "B2C SMART EXPRESS", load_type: "NON-DOCUMENT", consignment_type: "Forward", description: "BugyBoo Kids Products", dimension_unit: "cm", length: "10", width: "10", height: "10", weight_unit: "kg", weight: "0.5", declared_value: String(order.totalAmount || 500), num_pieces: String( order.products?.reduce( (acc, curr) => acc + curr.quantity, 0 ) || 1 ),
-     origin_details: { name: "BugyBoo", phone: "8744953803", alternate_phone: "9540680975", address_line_1: "Plot No. 987, Near HP Petrol Pump, NH 9, Shahpur Bamheta",
-       address_line_2: "", pincode: "201002", city: "Ghaziabad", state: "Uttar Pradesh" }, 
-     destination_details: { name: order.contact?.name || "Customer", phone: order.contact?.mobile || "9999999999", alternate_phone: "", address_line_1: address.fullAddress || 
-      address.addressLine || "Customer Address", address_line_2: "", pincode: address.pincode || "110001", city: address.city || 
-      "Delhi", state: address.state || "Delhi" }, customer_reference_number: order._id.toString(), cod_collection_mode: order.paymentMethod === "COD" ?
-       "CASH" : "", cod_amount: order.paymentMethod === "COD" ? String(order.totalAmount) : "", commodity_id: "38", reference_number: "" } ] }
+    const payload = { consignments: [ { customer_code: process.env.DTDC_CUSTOMER_CODE, service_type_id: "B2C SMART EXPRESS", load_type: "NON-DOCUMENT", consignment_type: "Forward", description: "BugyBoo Kids Products", dimension_unit: "cm", length: "10", width: "10", height: "10", weight_unit: "kg", weight: "0.5", declared_value: String(order.totalAmount || 500), num_pieces: String( order.products?.reduce( (acc, curr) => acc + curr.quantity, 0 ) || 1 ),
+      origin_details: { name: "BugyBoo", phone: "8744953803", alternate_phone: "9540680975", address_line_1: "Plot No. 987, Near HP Petrol Pump, NH 9, Shahpur Bamheta",
+        address_line_2: "", pincode: "201002", city: "Ghaziabad", state: "Uttar Pradesh" }, 
+      destination_details: { name: order.contact?.name || "Customer", phone: order.contact?.mobile || "9999999999", alternate_phone: "", address_line_1: address?.fullAddress || 
+       address?.addressLine || "Customer Address", address_line_2: "", pincode: address?.pincode || "110001", city: address?.city || 
+       "Delhi", state: address?.state || "Delhi" }, customer_reference_number: order._id.toString(), cod_collection_mode: order.paymentMethod === "COD" ?
+        "CASH" : "", cod_amount: order.paymentMethod === "COD" ? String(order.totalAmount) : "", commodity_id: "38", reference_number: "" } ] }
 
     const client = getConsignmentClient()
     const response = await client.post('/api/customer/integration/consignment/softdata', payload)
@@ -128,38 +149,33 @@ export const createShipment = async (order, address) => {
     log('Shipment response received:', response.data)
     
     const data = response.data
-    const isSuccess = data.success || data.status === 'SUCCESS' || (data.consignments && data.consignments[0]?.status === 'SUCCESS')
-    
-    if (!isSuccess) {
-      throw new Error(data.message || (data.consignments && data.consignments[0]?.message) || 'DTDC API failed to book consignment')
-    }
 
     const consignmentData =
-  data?.data?.[0] ||
-  data?.consignments?.[0] ||
-  {}
+      data?.data?.[0] ||
+      data?.consignments?.[0] ||
+      {}
 
-const isSuccess =
-  consignmentData.success === true ||
-  data.success === true ||
-  data.status === "SUCCESS" ||
-  data.status === "OK"
+    const isSuccess =
+      consignmentData.success === true ||
+      data.success === true ||
+      data.status === "SUCCESS" ||
+      data.status === "OK"
 
-if (!isSuccess) {
-  throw new Error(
-    consignmentData.message ||
-    data.message ||
-    "DTDC API failed to book consignment"
-  )
-}
+    if (!isSuccess) {
+      throw new Error(
+        consignmentData.message ||
+        data.message ||
+        "DTDC API failed to book consignment"
+      )
+    }
 
-const awb =
-  consignmentData.reference_number ||
-  consignmentData.awb ||
-  consignmentData.awbNo ||
-  data.awb ||
-  data.awbNo ||
-  `DTD${Date.now()}`
+    const awb =
+      consignmentData.reference_number ||
+      consignmentData.awb ||
+      consignmentData.awbNo ||
+      data.awb ||
+      data.awbNo ||
+      `DTD${Date.now()}`
     
     return {
       success: true,
@@ -188,7 +204,7 @@ export const trackShipment = async (awbNumber) => {
     const fullUrl = `${trackingUrl}/dtdc-api/rest/JSONCnTrk/getTrackDetails`
     
     log(`Tracking consignment: ${awbNumber}`)
-    console.log("[DTDC] URL:", fullUrl)
+    log('Using DTDC tracking endpoint')
 
     if (isMockMode()) {
       log('Mocked tracking info returned')
@@ -257,7 +273,7 @@ export const cancelShipment = async (awbNumber) => {
     const fullUrl = `${baseUrl}/api/customer/integration/consignment/cancel`
     
     log(`Cancelling consignment: ${awbNumber}`)
-    console.log("[DTDC] URL:", fullUrl)
+    log('Using DTDC cancel endpoint')
 
     if (isMockMode()) {
       log('Mocked cancellation response returned')
@@ -278,7 +294,19 @@ export const cancelShipment = async (awbNumber) => {
     
     log('Cancellation response received:', response.data)
     
-    
+    const data = response.data
+
+    const isSuccess =
+      data.success === true ||
+      data.status === 'SUCCESS' ||
+      data.code === 200
+
+    if (!isSuccess) {
+      throw new Error(
+        data.message ||
+        'DTDC API failed to cancel consignment'
+      )
+    }
 
     return {
       success: true,
@@ -303,7 +331,7 @@ export const generateLabel = async (awbNumber) => {
     const fullUrl = `${baseUrl}/api/customer/integration/consignment/shippinglabel/stream`
     
     log(`Generating label for consignment: ${awbNumber}`)
-    console.log("[DTDC] URL:", fullUrl)
+    log('Using DTDC label endpoint')
 
     if (isMockMode()) {
       log('Mocked label URL generated')
