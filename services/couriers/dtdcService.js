@@ -134,7 +134,32 @@ export const createShipment = async (order, address) => {
       throw new Error(data.message || (data.consignments && data.consignments[0]?.message) || 'DTDC API failed to book consignment')
     }
 
-    const awb = data.awbNo || data.awbNumber || data.awb || (data.consignments && data.consignments[0]?.awb) || (data.consignments && data.consignments[0]?.awbNo) || `DTD${Date.now()}`
+    const consignmentData =
+  data?.data?.[0] ||
+  data?.consignments?.[0] ||
+  {}
+
+const isSuccess =
+  consignmentData.success === true ||
+  data.success === true ||
+  data.status === "SUCCESS" ||
+  data.status === "OK"
+
+if (!isSuccess) {
+  throw new Error(
+    consignmentData.message ||
+    data.message ||
+    "DTDC API failed to book consignment"
+  )
+}
+
+const awb =
+  consignmentData.reference_number ||
+  consignmentData.awb ||
+  consignmentData.awbNo ||
+  data.awb ||
+  data.awbNo ||
+  `DTD${Date.now()}`
     
     return {
       success: true,
