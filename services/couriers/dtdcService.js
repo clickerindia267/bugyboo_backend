@@ -114,7 +114,13 @@ export const createShipment = async (order, address) => {
     }
 
     // Official production softdata payload structure
-   const payload = { consignments: [ { customer_code: process.env.DTDC_CUSTOMER_CODE, service_type_id: "B2C PRIORITY", load_type: "NON-DOCUMENT", consignment_type: "Forward", description: "BugyBoo Kids Products", dimension_unit: "cm", length: "10", width: "10", height: "10", weight_unit: "kg", weight: "0.5", declared_value: String(order.totalAmount || 500), num_pieces: String( order.products?.reduce( (acc, curr) => acc + curr.quantity, 0 ) || 1 ), origin_details: { name: "BugyBoo", phone: "9999999999", alternate_phone: "", address_line_1: "BugyBoo Office", address_line_2: "", pincode: "201301", city: "Noida", state: "Uttar Pradesh" }, destination_details: { name: order.contact?.name || "Customer", phone: order.contact?.mobile || "9999999999", alternate_phone: "", address_line_1: address.fullAddress || address.addressLine || "Customer Address", address_line_2: "", pincode: address.pincode || "110001", city: address.city || "Delhi", state: address.state || "Delhi" }, customer_reference_number: order._id.toString(), cod_collection_mode: order.paymentMethod === "COD" ? "CASH" : "", cod_amount: order.paymentMethod === "COD" ? String(order.totalAmount) : "", commodity_id: "7", reference_number: "" } ] }
+   const payload = { consignments: [ { customer_code: process.env.DTDC_CUSTOMER_CODE, service_type_id: "P" , load_type: "NON-DOCUMENT", consignment_type: "Forward", description: "BugyBoo Kids Products", dimension_unit: "cm", length: "10", width: "10", height: "10", weight_unit: "kg", weight: "0.5", declared_value: String(order.totalAmount || 500), num_pieces: String( order.products?.reduce( (acc, curr) => acc + curr.quantity, 0 ) || 1 ),
+     origin_details: { name: "BugyBoo", phone: "8744953803", alternate_phone: "9540680975", address_line_1: "Plot No. 987, Near HP Petrol Pump, NH 9, Shahpur Bamheta",
+       address_line_2: "", pincode: "201002", city: "Ghaziabad", state: "Uttar Pradesh" }, 
+     destination_details: { name: order.contact?.name || "Customer", phone: order.contact?.mobile || "9999999999", alternate_phone: "", address_line_1: address.fullAddress || 
+      address.addressLine || "Customer Address", address_line_2: "", pincode: address.pincode || "110001", city: address.city || 
+      "Delhi", state: address.state || "Delhi" }, customer_reference_number: order._id.toString(), cod_collection_mode: order.paymentMethod === "COD" ?
+       "CASH" : "", cod_amount: order.paymentMethod === "COD" ? String(order.totalAmount) : "", commodity_id: "7", reference_number: "" } ] }
 
     const client = getConsignmentClient()
     const response = await client.post('/api/customer/integration/consignment/softdata', payload)
