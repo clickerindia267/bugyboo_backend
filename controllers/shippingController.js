@@ -175,6 +175,12 @@ export const generateDTDCLabel = async (req, res, next) => {
     const labelResult = await dtdcService.generateLabel(awb)
 
     if (labelResult.success) {
+      if (labelResult.isBuffer) {
+        res.setHeader('Content-Type', labelResult.contentType || 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename=label-${awb}.pdf`)
+        return res.send(labelResult.buffer)
+      }
+
       // Sync label URL to order if found
       const order = await Order.findOne({ awbNumber: awb })
       if (order) {
