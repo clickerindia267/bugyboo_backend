@@ -59,6 +59,9 @@ export const placeOrder = async (req, res, next) => {
 
       orderProducts.push({
         product: product._id,
+        productName: product.name,
+        productImage: product.images && product.images[0] ? product.images[0] : null,
+        price: item.selectedPrice,
         variantId: item.variantId,
         selectedAgeGroup: item.selectedAgeGroup,
         quantity: item.quantity,
@@ -293,7 +296,12 @@ export const updateOrderStatus = async (req, res, next) => {
       }
     }
 
-    res.json({ success: true, data: order })
+    const populatedOrder = await Order.findById(order._id)
+      .populate('user', 'name email mobile role')
+      .populate('products.product', 'name sellPrice images')
+      .populate('address')
+
+    res.json({ success: true, data: populatedOrder })
   } catch (error) {
     next(error)
   }

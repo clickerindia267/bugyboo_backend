@@ -25,6 +25,18 @@ const orderItemSchema = new mongoose.Schema({
     required: true,
     min: [0, 'Price must be non-negative']
   },
+  productName: {
+    type: String,
+    default: null
+  },
+  productImage: {
+    type: String,
+    default: null
+  },
+  price: {
+    type: Number,
+    default: null
+  },
   subtotal: {
     type: Number,
     required: true,
