@@ -114,28 +114,7 @@ export const createShipment = async (order, address) => {
     }
 
     // Official production softdata payload structure
-    const payload = {
-      customerCode: process.env.DTDC_CUSTOMER_CODE || 'DEMO_CUST',
-      consignments: [
-        {
-          reference_number: order._id.toString(),
-          shipper_name: 'BugyBoo Store',
-          shipper_address: 'BugyBoo Office, Sector 62, Noida, India',
-          shipper_pincode: '201301',
-          shipper_phone: '9999999999',
-          consignee_name: order.contact.name,
-          consignee_address: address.fullAddress || `${address.addressLine || ''}, ${address.city || ''}`,
-          consignee_pincode: address.pincode,
-          consignee_phone: order.contact.mobile,
-          weight: 0.5,
-          pieces: order.products.reduce((acc, curr) => acc + curr.quantity, 0),
-          declared_value: order.totalAmount,
-          contents: 'Baby Products and Accessories',
-          service_type_id: process.env.DTDC_SERVICE_TYPE_ID || 'P',
-          consignment_type: process.env.DTDC_CONSIGNMENT_TYPE || 'P'
-        }
-      ]
-    }
+   const payload = { consignments: [ { customer_code: process.env.DTDC_CUSTOMER_CODE, service_type_id: "B2C PRIORITY", load_type: "NON-DOCUMENT", consignment_type: "Forward", description: "BugyBoo Kids Products", dimension_unit: "cm", length: "10", width: "10", height: "10", weight_unit: "kg", weight: "0.5", declared_value: String(order.totalAmount || 500), num_pieces: String( order.products?.reduce( (acc, curr) => acc + curr.quantity, 0 ) || 1 ), origin_details: { name: "BugyBoo", phone: "9999999999", alternate_phone: "", address_line_1: "BugyBoo Office", address_line_2: "", pincode: "201301", city: "Noida", state: "Uttar Pradesh" }, destination_details: { name: order.contact?.name || "Customer", phone: order.contact?.mobile || "9999999999", alternate_phone: "", address_line_1: address.fullAddress || address.addressLine || "Customer Address", address_line_2: "", pincode: address.pincode || "110001", city: address.city || "Delhi", state: address.state || "Delhi" }, customer_reference_number: order._id.toString(), cod_collection_mode: order.paymentMethod === "COD" ? "CASH" : "", cod_amount: order.paymentMethod === "COD" ? String(order.totalAmount) : "", commodity_id: "7", reference_number: "" } ] }
 
     const client = getConsignmentClient()
     const response = await client.post('/api/customer/integration/consignment/softdata', payload)
