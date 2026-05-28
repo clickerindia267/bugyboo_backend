@@ -57,7 +57,7 @@ export const addToCart = async (req, res, next) => {
 
     // Check if same product with same variant already exists in cart
     const existingProduct = cart.products.find(
-      item => item.productId.toString() === productId && item.variantId.toString() === variantId
+      item => item.productId && item.productId.toString() === productId && item.variantId && item.variantId.toString() === variantId
     )
 
     if (existingProduct) {
@@ -150,7 +150,7 @@ export const updateCart = async (req, res, next) => {
     }
 
     const item = cart.products.find(
-      product => product.productId.toString() === productId && product.variantId.toString() === variantId
+      product => product.productId && product.productId.toString() === productId && product.variantId && product.variantId.toString() === variantId
     )
     
     if (!item) {
@@ -183,7 +183,7 @@ export const removeFromCart = async (req, res, next) => {
     }
 
     cart.products = cart.products.filter(
-      item => !(item.productId.toString() === productId && item.variantId.toString() === variantId)
+      item => !(item.productId && item.productId.toString() === productId && item.variantId && item.variantId.toString() === variantId)
     )
     await cart.save()
 

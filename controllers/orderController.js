@@ -43,16 +43,15 @@ export const placeOrder = async (req, res, next) => {
     for (const item of cart.products) {
       const product = item.productId
       if (!product) {
-        return res.status(404).json({ success: false, message: `Product not found: ${item.productId}` })
+        // Skip deleted/missing products
+        continue
       }
 
       // Validate variant exists
-      const variant = product.variants.id(item.variantId)
+      const variant = product.variants ? product.variants.id(item.variantId) : null
       if (!variant) {
-        return res.status(404).json({
-          success: false,
-          message: `Variant not found for product ${product.name}`
-        })
+        // Skip invalid/deleted variants
+        continue
       }
 
       const subtotal = item.selectedPrice * item.quantity
@@ -77,6 +76,10 @@ export const placeOrder = async (req, res, next) => {
         subtotal,
         productImage: product.images && product.images[0] ? product.images[0] : null
       })
+    }
+
+    if (orderProducts.length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid products in your cart. Your cart may contain deleted products.' })
     }
 
     const order = await Order.create({
