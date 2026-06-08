@@ -178,12 +178,60 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
+    let existingImages = []
+    let hasExistingImagesSpecified = false
+    if (typeof updateData.existingImages !== 'undefined') {
+      hasExistingImagesSpecified = true
+      try {
+        if (typeof updateData.existingImages === 'string') {
+          existingImages = JSON.parse(updateData.existingImages)
+        } else if (Array.isArray(updateData.existingImages)) {
+          existingImages = updateData.existingImages
+        }
+      } catch (error) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid existingImages format'
+        })
+      }
+      delete updateData.existingImages
+    }
+
+    const existingProduct = await Product.findById(id)
+    if (!existingProduct) {
+      return res.status(404).json({ success: false, message: 'Product not found' })
+    }
+
+    let currentImages = existingProduct.images || []
+    let currentMedia = existingProduct.media || []
+
+    if (hasExistingImagesSpecified) {
+      currentImages = currentImages.filter(url => existingImages.includes(url))
+      currentMedia = currentMedia.filter(m => existingImages.includes(m.url))
+      
+      existingImages.forEach(url => {
+        if (!currentMedia.some(m => m.url === url)) {
+          const lowercase = url.toLowerCase()
+          const isVideo = lowercase.endsWith('.mp4') || lowercase.endsWith('.webm') || lowercase.endsWith('.mov') || lowercase.endsWith('.avi')
+          currentMedia.push({ url, type: isVideo ? 'video' : 'image' })
+        }
+      })
+    }
+
     if (req.files && req.files.length > 0) {
-      updateData.images = req.files.map(file => file.location || file.key)
-      updateData.media = req.files.map(file => ({
+      const newImages = req.files.map(file => file.location || file.key)
+      const newMedia = req.files.map(file => ({
         url: file.location || file.key,
         type: file.mimetype && file.mimetype.startsWith('video/') ? 'video' : 'image'
       }))
+
+      currentImages = [...currentImages, ...newImages]
+      currentMedia = [...currentMedia, ...newMedia]
+    }
+
+    if (hasExistingImagesSpecified || (req.files && req.files.length > 0)) {
+      updateData.images = currentImages
+      updateData.media = currentMedia
     }
 
     if (updateData.category) {
