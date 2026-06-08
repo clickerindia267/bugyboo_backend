@@ -1,11 +1,22 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import multer from 'multer'
 
+const ALLOWED_MIME_TYPES = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+  'video/x-msvideo'
+]
+
 const fileFilter = (req, file, cb) => {
-  if (/^image\//.test(file.mimetype) || /^video\//.test(file.mimetype)) {
+  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true)
   } else {
-    cb(new Error('Only image and video files are allowed'), false)
+    cb(new Error('Unsupported file type'), false)
   }
 }
 
@@ -31,7 +42,7 @@ export const adminMediaUpload = (maxFiles = 4, folder = 'admin') => {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 50 * 1024 * 1024
+      fileSize: 100 * 1024 * 1024
     },
     fileFilter
   }).array('media', maxFiles)
@@ -39,11 +50,27 @@ export const adminMediaUpload = (maxFiles = 4, folder = 'admin') => {
   return (req, res, next) => {
     upload(req, res, async err => {
       if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ success: false, message: 'Oversized file: Maximum size allowed is 100MB' })
+        }
         return res.status(400).json({ success: false, message: err.message })
       }
 
       if (!req.files || req.files.length === 0) {
         return next()
+      }
+
+      // Validate files by mime type and size limits
+      for (const file of req.files) {
+        if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+          return res.status(400).json({ success: false, message: 'Unsupported file type' })
+        }
+        if (file.mimetype.startsWith('image/') && file.size > 50 * 1024 * 1024) {
+          return res.status(400).json({ success: false, message: 'Oversized file: Images must be under 50MB' })
+        }
+        if (file.mimetype.startsWith('video/') && file.size > 100 * 1024 * 1024) {
+          return res.status(400).json({ success: false, message: 'Oversized file: Videos must be under 100MB' })
+        }
       }
 
       const bucketName = process.env.AWS_S3_BUCKET_NAME

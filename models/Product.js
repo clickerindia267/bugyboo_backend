@@ -64,6 +64,19 @@ const productSchema = new mongoose.Schema({
       required: true
     }
   ],
+  media: [
+    {
+      url: {
+        type: String,
+        required: true
+      },
+      type: {
+        type: String,
+        enum: ['image', 'video'],
+        default: 'image'
+      }
+    }
+  ],
   isPaused: {
     type: Boolean,
     default: false

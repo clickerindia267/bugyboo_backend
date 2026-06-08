@@ -84,6 +84,10 @@ export const createProduct = async (req, res, next) => {
     }
 
     const images = req.files.map(file => file.location || file.key)
+    const media = req.files.map(file => ({
+      url: file.location || file.key,
+      type: file.mimetype && file.mimetype.startsWith('video/') ? 'video' : 'image'
+    }))
 
     const product = await Product.create({
       name,
@@ -92,7 +96,8 @@ export const createProduct = async (req, res, next) => {
       description,
       variants,
       gst,
-      images
+      images,
+      media
     })
 
     res.status(201).json({
@@ -175,6 +180,10 @@ export const updateProduct = async (req, res, next) => {
 
     if (req.files && req.files.length > 0) {
       updateData.images = req.files.map(file => file.location || file.key)
+      updateData.media = req.files.map(file => ({
+        url: file.location || file.key,
+        type: file.mimetype && file.mimetype.startsWith('video/') ? 'video' : 'image'
+      }))
     }
 
     if (updateData.category) {
