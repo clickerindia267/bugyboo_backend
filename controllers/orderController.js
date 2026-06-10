@@ -40,6 +40,8 @@ export const placeOrder = async (req, res, next) => {
     const emailProducts = []
     let totalAmount = 0
 
+    const productsToSave = new Map()
+
     for (const item of cart.products) {
       const product = item.productId
       if (!product) {
@@ -54,8 +56,30 @@ export const placeOrder = async (req, res, next) => {
         continue
       }
 
+      // Stock Check at checkout
+      if (variant.stock !== undefined && variant.stock !== null) {
+        if (variant.stock === 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Out of Stock'
+          })
+        }
+        if (item.quantity > variant.stock) {
+          return res.status(400).json({
+            success: false,
+            message: `Only ${variant.stock} items available`
+          })
+        }
+      }
+
       const subtotal = item.selectedPrice * item.quantity
       totalAmount += subtotal
+
+      // Decrement stock if defined
+      if (variant.stock !== undefined && variant.stock !== null) {
+        variant.stock = Math.max(0, variant.stock - item.quantity)
+        productsToSave.set(product._id.toString(), product)
+      }
 
       orderProducts.push({
         product: product._id,
@@ -79,6 +103,11 @@ export const placeOrder = async (req, res, next) => {
         subtotal,
         productImage: product.images && product.images[0] ? product.images[0] : null
       })
+    }
+
+    // Save all updated products
+    for (const prod of productsToSave.values()) {
+      await prod.save()
     }
 
     if (orderProducts.length === 0) {

@@ -17,6 +17,11 @@ const variantSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Sell price is required for variant'],
       min: [0, 'Sell price must be positive']
+    },
+    stock: {
+      type: Number,
+      required: false,
+      min: [0, 'Stock must be non-negative']
     }
   },
   { _id: true }

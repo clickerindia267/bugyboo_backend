@@ -40,6 +40,32 @@ export const addToCart = async (req, res, next) => {
     const qty = Math.max(1, Number(quantity) || 1)
     const selectedPrice = variant.sellPrice
 
+    // Stock check
+    if (variant.stock !== undefined && variant.stock !== null) {
+      if (variant.stock === 0) {
+        return res.status(400).json({ success: false, message: 'Out of Stock' })
+      }
+
+      // Check current quantity in cart of this product + variant
+      let currentQtyInCart = 0
+      let cartToCheck = await Cart.findOne({ userId })
+      if (cartToCheck) {
+        const existingProductToCheck = cartToCheck.products.find(
+          item => item.productId && item.productId.toString() === productId && item.variantId && item.variantId.toString() === variantId
+        )
+        if (existingProductToCheck) {
+          currentQtyInCart = existingProductToCheck.quantity
+        }
+      }
+
+      if (currentQtyInCart + qty > variant.stock) {
+        return res.status(400).json({
+          success: false,
+          message: `Only ${variant.stock} items available`
+        })
+      }
+    }
+
     let cart = await Cart.findOne({ userId })
     if (!cart) {
       cart = await Cart.create({
@@ -110,7 +136,8 @@ export const getCart = async (req, res, next) => {
           variantDetails: variant ? {
             ageGroup: variant.ageGroup,
             basePrice: variant.basePrice,
-            sellPrice: variant.sellPrice
+            sellPrice: variant.sellPrice,
+            stock: variant.stock
           } : null,
           subtotal: item.selectedPrice * item.quantity
         }
@@ -155,6 +182,23 @@ export const updateCart = async (req, res, next) => {
     
     if (!item) {
       return res.status(404).json({ success: false, message: 'Product variant not found in cart' })
+    }
+
+    // Stock Check
+    const product = await Product.findById(productId)
+    if (product) {
+      const variant = product.variants ? product.variants.id(variantId) : null
+      if (variant && variant.stock !== undefined && variant.stock !== null) {
+        if (variant.stock === 0) {
+          return res.status(400).json({ success: false, message: 'Out of Stock' })
+        }
+        if (qty > variant.stock) {
+          return res.status(400).json({
+            success: false,
+            message: `Only ${variant.stock} items available`
+          })
+        }
+      }
     }
 
     item.quantity = qty

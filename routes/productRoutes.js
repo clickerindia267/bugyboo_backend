@@ -37,6 +37,12 @@ const validateVariants = (value) => {
     if (typeof variant.sellPrice !== 'number' || variant.sellPrice < 0) {
       throw new Error(`Invalid sellPrice for age group ${variant.ageGroup}`)
     }
+    if (variant.stock !== undefined && variant.stock !== null && variant.stock !== '') {
+      const stockNum = Number(variant.stock)
+      if (Number.isNaN(stockNum) || !Number.isInteger(stockNum) || stockNum < 0) {
+        throw new Error(`Invalid stock for age group ${variant.ageGroup}. Stock must be a non-negative integer.`)
+      }
+    }
   }
   
   return true

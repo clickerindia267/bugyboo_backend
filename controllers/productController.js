@@ -73,6 +73,16 @@ export const createProduct = async (req, res, next) => {
           message: `Invalid sellPrice for age group ${variant.ageGroup}`
         })
       }
+      if (variant.stock !== undefined && variant.stock !== null && variant.stock !== '') {
+        const stockNum = Number(variant.stock)
+        if (Number.isNaN(stockNum) || !Number.isInteger(stockNum) || stockNum < 0) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid stock for age group ${variant.ageGroup}`
+          })
+        }
+        variant.stock = stockNum
+      }
     }
 
     const categoryExists = await Category.findById(category)
@@ -272,6 +282,16 @@ export const updateProduct = async (req, res, next) => {
             success: false,
             message: `Invalid sellPrice for age group ${variant.ageGroup}`
           })
+        }
+        if (variant.stock !== undefined && variant.stock !== null && variant.stock !== '') {
+          const stockNum = Number(variant.stock)
+          if (Number.isNaN(stockNum) || !Number.isInteger(stockNum) || stockNum < 0) {
+            return res.status(400).json({
+              success: false,
+              message: `Invalid stock for age group ${variant.ageGroup}`
+            })
+          }
+          variant.stock = stockNum
         }
       }
     }
